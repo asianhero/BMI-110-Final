@@ -31,7 +31,7 @@ class Menu:
                     elif self.main_menu == 3:
                         print("Nurse Portal Selected. ")
                         f = Nurse()
-                        f.nurse_menu()
+                        f.nurse_login()
                     elif self.main_menu == 4:
                         print("Exiting Program ")
                         sys.exit(0)
@@ -55,7 +55,7 @@ class Person:
 # DOCTOR MODULE       
 class Doctor(Person):
     # Initialize Doctor constants
-    def __init__(self, first_name = '', last_name = '', dictionary_keys = {}, test_list = {}, cost = 0, tests = {}, tabulation_total = [], total = 0, addition = [], medication = [], medications = [], price = [], doctor_login_info = {'c': '1'} ):
+    def __init__(self, first_name = '', last_name = '', dictionary_keys = {}, test_list = {}, cost = 0, tests = {}, total = 0, medication = {}, medications = {}, price = [], doctor_login_info = {'c': '1'}, med_info = {} ):
         super().__init__(first_name, last_name)
         self.first_name = first_name
         self.last_name = last_name
@@ -63,13 +63,12 @@ class Doctor(Person):
         self.test_list = test_list
         self.cost = cost
         self.tests = tests
-        self.tabulation_total = tabulation_total
         self.total = total
-        self.addition = addition
         self.medication = medication
         self.medications = medications
         self.price = price
         self.doctor_login_info = doctor_login_info
+        self.med_info = med_info
         
     # Doctor login
     def doctor_login(self):
@@ -135,14 +134,16 @@ class Doctor(Person):
                 doctor_welcome = int(input("Welcome to the Doctor Portal. \nTo create a Patient profile, press 1.\n"
                                             "For a list of patients, press 2.\nTo assign lab tests to a patient, press 3.\n"
                                             "To create a new Doctor Profile, press 4.\n"
-                                            "To switch to  Nurse view, Press 5\n"
-                                            "To discharge a patient, press 6\n"
+                                            "To assign medication, press 5\n"
+                                            "To diagnose allergies, press 6\n"
+                                           "To switch to  Nurse view, Press 7\n"
+                                            "To discharge a patient, press 8\n"
                                             "To go back to the main menu, press 0. Please select: "))
                 try:
                     if doctor_welcome == 0:
                         main_menu.user_input()
                     elif doctor_welcome == 1:
-                        print('Welcome to create a patient profile. ')
+                        print('\nWelcome to create a patient profile. ')
                         key_add = int(input("How many patients to add? "))
                         for patient in range(key_add):
                             doctor.database_addition()
@@ -158,7 +159,7 @@ class Doctor(Person):
                         if not self.dictionary_keys:
                             print("Empty")
                         else:
-                            print("Here's a list: ")
+                            print("\nHere's a list: ")
                             doctor.database()
                     elif doctor_welcome == 3:
                         doctor.lab_tests_request()
@@ -167,9 +168,15 @@ class Doctor(Person):
                         doctor.create_new_doctor()
                         
                     elif doctor_welcome == 5:
+                        doctor.assign_medication()
+                        
+                    elif doctor_welcome ==6:
+                        doctor.dallergies()
+
+                    elif doctor_welcome == 7:
                         print('Now entering Nurse view:')
                         n.nurse_menu()
-                    elif doctor_welcome == 6:
+                    elif doctor_welcome == 8:
                         doctor.discharge_patient()
 
                 except ValueError:
@@ -179,36 +186,43 @@ class Doctor(Person):
                              
     # Assign unique patient ID and get patient info
     def database_addition(self):
-        print("For the patient identifier, we'll use the patient ID. ")
-        key_id = input("Patient ID: ")
-        attributes_list = []
+       print("For the patient identifier, we'll use the patient ID. ")
+       self.key_id = input("Patient ID: ")
+       attributes_list = []
+       attributes_list_two = []
+       self.first_name = input("First name: ")
+       attributes_list.append(self.first_name)
+       self.last_name = input("Last name: ")
+       attributes_list.append(self.last_name)
+       self.age = int(input("age: "))
+       attributes_list.append(self.age)
+       self.address = input("Address: ")
+       attributes_list.append(self.address)
+       self.admit_date = input("Admit date: ")
+       attributes_list.append(self.admit_date)
+       self.dictionary_keys[self.key_id] = attributes_list
+       self.dictionary_keys[self.key_id] = attributes_list
+       # Putting in TestID is fine, just a unique area for each patient to house their tests
+       self.key_two = input("Test ID: ")
+       self.dictionary_keys[self.key_two] = attributes_list_two
+    
+    #Only doctors can assign allergies, not nurse
+    def dallergies(self):
         allergy_list = []
-        self.first_name = input("First name: ")
-        attributes_list.append(self.first_name)
-        self.last_name = input("Last name: ")
-        attributes_list.append(self.last_name)
-        self.age = int(input("age: "))
-        attributes_list.append(self.age)
-        self.address = input("Address: ")
-        attributes_list.append(self.address)
-        self.admit_date = input("Admit date: ")
-        attributes_list.append(self.admit_date)
-        # There's not much to allergy so it can be put here if it's okay
-        # I'll comment out the allergy function  
-        allergy_key = "Allergy"
+        allergy_key = "     Allergy"
         number_of_allergies = int(input("How many allergies? "))
         for item in range(number_of_allergies):
             self.allergies = input("Enter allergy: ")
             allergy_list.append(self.allergies)
-        self.dictionary_keys[key_id] = attributes_list
         self.dictionary_keys[allergy_key] = allergy_list
         
     # Create discharge patient function
     def discharge_patient(self):
+        doctor = Doctor()
         filename = input("First Name: ")
         filename_2 = input("Last Name: ")
         with open(filename + filename_2 + "_discharged", "w") as f:
-            f.write((filename + filename_2 + self.total))
+            f.write((filename + filename_2 + doctor.medication_price()))
             number = input("ID to discharge: ")
             test = input("Test ID:")
             if number in self.dictionary_keys.keys():
@@ -233,7 +247,6 @@ class Doctor(Person):
         self.test_list = {'ABG': 500 , 'LFT': 400, 'COAGULATION': 600, 'CBC': 200, 'TSH': 100, 'CHOLESTEROL': 200}
         for key,value in self.test_list.items():
             print(key,value)
-            
     # Fetches lab tests
     def fetch_lab_tests(self,key):
         return self.test_list[key]
@@ -248,45 +261,46 @@ class Doctor(Person):
         labs.database()
         while True:  
             try:
-                self.tests.clear()
-                doctor_request = input('Select the patient ID for the patient you wish to request tests: ')
-                name_request = input("What is the patient's first name? ")
-                number = input("Test number? ")
-                request = labs.fetch_database_value(doctor_request)
-                request_two = labs.fetch_database_value(number)
-                print(request)
-                labs.lab_tests()
-                if number in self.dictionary_keys.keys():
-                    if doctor_request in self.dictionary_keys.keys():
-                        if name_request in request:
-                            request_number = int(input("How many tests to request? "))
-                            for test in range(request_number):
-                                test_request = input('Which test to request? ').upper()
-                                test = labs.fetch_lab_tests(test_request)
-                                test_cost = labs.fetch_lab_costs()
-                                if test in test_cost: 
-                                    self.cost = test
-                                    self.tests[test_request] = self.cost
-                                    request_two.append(self.cost)
-                                    self.total = sum(request_two)
-                                else:
-                                    print("Test not found")  
+                try:
+                    self.tests.clear()
+                    doctor_request = input('\nSelect the patient ID for the patient you wish to request tests: ')
+                    name_request = input("What is the patient's first name? ")
+                    number = input("Test ID? ")
+                    request = labs.fetch_database_value(doctor_request)
+                    request_two = labs.fetch_database_value(number)
+                    print(request)
+                    labs.lab_tests()
+                    if number in self.dictionary_keys.keys():
+                        if doctor_request in self.dictionary_keys.keys():
+                            if name_request in request:
+                                request_number = int(input("How many tests to request? "))
+                                for test in range(request_number):
+                                    test_request = input('Which test to request? ').upper()
+                                    test = labs.fetch_lab_tests(test_request)
+                                    test_cost = labs.fetch_lab_costs()
+                                    if test in test_cost: 
+                                        self.cost = test
+                                        self.tests[test_request] = self.cost
+                                        request_two.append(self.cost)
+                                        self.total = sum(request_two)
+                                    else:
+                                        print("Test not found")  
                             print(self.total)
-                            request.append(self.tests.copy())
-                            self.tabulation_total.append(self.cost) 
+                            request.append(self.tests.copy()) 
                             labs.test_cost()
                         user_input = input("Back to test menu? ")
                         if user_input == "y" or user_input == "Y":
                             labs.lab_tests_request()
                         if user_input == "n" or user_input == "N":
                             labs.doctor_menu()
+                except ValueError:
+                    request_number = float(request_number)
             except ValueError:            
                 print("Try again")
                 
     def test_cost(self):
         print('\n'.join("{}: ${}".format(k,v) for k,v in self.tests.items()))
-
-        self.dictionary_keys.set
+        
  # Creates medication database
     def medication_database(self):
         for key,value in self.dictionary_keys.items():
@@ -311,29 +325,30 @@ class Doctor(Person):
         #for key in self.tests:
         print(f'The medications ordered are {self.medications} and the sum of medications ordered is ${price}')
             #print("The tests ordered are: {} ".format(key),end = "")
-    
+
     # get dosage, route, and frequency information
-    def medication_dosage():
-        medication_dosage = input("Please indicate how many milligrams of the medication is to be taken")
+    def medication_dosage(self):
+        medication_dosage = input("Please indicate how many milligrams of the medication is to be taken ")
+
+        #self.med_info["Dosage"] = medication_dosage
+        #print(self.med_info)
+        return medication_dosage
     def medication_route():
         medication_route = input("Please indicate how medication is to be administered\nOrally, Intravenously, or via Injection")
     def medication_frequency():
         medication_frequency = input("Please indicate the frequency of which the medication is to be taken/administered")
     
-    # allow doctor to assign medications
-    # like allergies, doesn't do anything nor is called by any function so can also be moved to doctor database addition function
-    # as a new key
     def assign_medication(self):
         meds = Doctor()
+        assign_medication = input('Enter the patient ID receiving the medication: ')
         meds.database()
-        assign_medication = input('Select the patient receiving the medication: ')
         #Patient Request
-        patient_Request = meds.fetch_database(assign_medication)
+        patient_Request = meds.fetch_database_value(assign_medication)
         print(patient_Request)
         meds.medication_types()
         while True:
             try:                
-                req_number = int(input("How many medications to assign? "))
+                req_number = int(input("\nHow many medications to assign? "))
                 for medication in range(req_number):
                     medication_chosen = input('Which medication(s) to request? ').upper()
                     medication = meds.fetch_medication(medication_chosen)
@@ -341,9 +356,11 @@ class Doctor(Person):
                     if medication in medication_cost: 
                         self.price = medication
                         self.medications[medication_chosen] = self.price
+                        meds.medication_dosage()
                     else:
-                        print("Test not found")
+                        print("Medication not found")
                 meds.medication_price()
+                
                 user_input = input("Back to Doctor Menu? ")
                 if user_input == "y" or user_input == "Y":
                     meds.doctor_menu()
@@ -354,8 +371,6 @@ class Doctor(Person):
             except ValueError:
                 print("Try again")   
 
-# This doesn't do anything nor is called by any function defining the patient so I moved it to the doctor database addition function
-# as a new key. 
    # Allergies function
     def allergies(self):
         allergiesList = []
@@ -367,7 +382,7 @@ class Doctor(Person):
             allergies = int(allergies)
             try:
                 if allergies == 1:
-                    addedAllergies = input('How many allergies will the patient be diagnosed with: ')
+                    addedAllergies = input('\nHow many allergies will the patient be diagnosed with: ')
                     addedAllergies = int(addedAllergies)
                     for i in addedAllergies:
                         diagnosedAllergies = input('Allergy: ')
@@ -380,8 +395,6 @@ class Doctor(Person):
                         print('Allergies list: ')
                         print(*allergiesList, sep = ', ')
                 elif allergies == 3:
-                    # Doesn't go back to the doctor portal, it exits the program
-                    # doctor = Doctor() then doctor.doctor_menu()
                     sys.exit
                 else:
                     # just prints options, no input for user nor allows for user input
@@ -401,7 +414,7 @@ class Doctor(Person):
 class Patient(Doctor):
     def __init__(self, patient_id = 0, first_name = '', last_name = '', age = 0,
                  address = '', admit_date = ''):
-        super().__init__(first_name = '', last_name = '', dictionary_keys = {}, test_list = {}, cost = 0, tests = {}, tabulation_total = [], total = 0, addition = [])
+        super().__init__(first_name = '', last_name = '', dictionary_keys = {}, test_list = {}, cost = 0, tests = {}, total = 0,)
         self.patient_id = patient_id
         self.first_name = first_name
         self.last_name = last_name
@@ -418,13 +431,13 @@ class Patient(Doctor):
             count = 0
             counts = 0
             try:
-                patient_welcome = int(input("If you're a patient and would like to see your profile, press 1.\n"
+                patient_welcome = int(input("\nIf you're a patient and would like to see your profile, press 1.\n"
                                             "To go back to the main menu, press 0. Please select: "))
                 try:
                     if patient_welcome == 0:
                         main_menu.user_input()
                     if patient_welcome == 1:
-                        patient_id = input("What is your unique patient ID? ")
+                        patient_id = input("\nWhat is your unique patient ID? ")
                         patient_first_name = input("What is your first name? ")
                         patient_last_name = input("What is your last name? ")
                         result = doctor.fetch_database_value(patient_id)
@@ -458,23 +471,48 @@ class Patient(Doctor):
 # Define a nurse module
 class Nurse(Doctor):    
     def __init__(self, patient_id = 0, first_name = '', last_name = '', age = 0,
-                 address = '', admit_date = ''):
-        super().__init__(first_name = '', last_name = '', dictionary_keys = {}, test_list = {}, cost = 0, tests = {}, tabulation_total = [], total = 0, addition = [], medication = [], medications = [], price = [])
+                 address = '', admit_date = '', nurse_login_info = {'n':'2'}):
+        super().__init__(first_name = '', last_name = '', dictionary_keys = {}, test_list = {}, cost = 0, tests = {}, total = 0, medication = [], medications = [], price = [],)
         self.patient_id = patient_id
         self.first_name = first_name
         self.last_name = last_name
         self.age = age
         self.address = address
         self.admit_date = admit_date
+        self.nurse_login_info = nurse_login_info
         
+    def nurse_login(self):
+        nurse = Nurse()
+        print("Hello! Before going any further, provide your Nurse login please.\n "
+              "If a new user, log in with the default credentials and then you'll\n "
+              "be able to create a new profile. ")
+        while True:
+            try:
+                nurse_user = input("Username: ")
+                #if doctor_user == default_doctor_ID or 
+                if nurse_user in self.nurse_login_info.keys():
+                    nurse_pass = input("What is your password? ")
+                    if nurse_pass in self.nurse_login_info.values():
+                        print(f'Welcome {nurse_user}!')
+                        nurse.nurse_menu()
+                    else:
+                        print("Wrong password")
+                else:
+                    print("Wrong username. ")
+            except ValueError:
+                print("Try again. ")  
+       
     # Define the nurse menu
     def nurse_menu(self):
         doctor = Doctor()
+        nurse = Nurse()
         main_menu = Menu()
         while True:
             try:
                 nurse_welcome = int(input("Welcome to the Nurse portal.\nTo create a new patient press 1\n"
-                                        "To view a patient's details, press 2\nTo return to the main menu, press 0 "))
+                                        "To view a patient's details, press 2\n"
+                                        "To create a login, press 3\n"
+                                        "To return to the main menu, press 0 "))
                 try: 
                     nurse_welcome = int(nurse_welcome)
                     if nurse_welcome == 0:
@@ -497,6 +535,8 @@ class Nurse(Doctor):
                                 main_menu.user_input()
                     elif nurse_welcome == 2:
                         doctor.database()
+                    elif nurse_welcome == 3:
+                        nurse.nurse_info()
                     else:
                         print('Wrong number selected. Try again. \n')
                 except ValueError:
@@ -504,6 +544,27 @@ class Nurse(Doctor):
             except ValueError:
                 print("Error, not a number. Next time, enter numeric input. \n")
 
+    def nurse_info(self):
+            create_new = input('Would you like to create new Nurse Profile (Y)es or (N)o?')
+            while create_new != 'y' and create_new != 'Y':
+                create_new = input("That's not a valid choice, please try again\n (Y)es or (N)o? ")
+                print(create_new)
+            if create_new == 'Y' or create_new == 'y':
+                print('Let''s create a new profile')
+                attributes_list2 = []
+                self.first_name = input('Please enter the first name of the nurse you wish to add: ')
+                attributes_list2.append(self.first_name)
+                self.last_name = input('Please enter the last name of the nurse you wish to add: ')
+                attributes_list2.append(self.last_name)
+                self.username = input('Please enter new username: ')
+                attributes_list2.append(self.username)
+                self.password = input('Please enter new password: ')
+                attributes_list2.append(self.password)
+                print('The following doctor profile was written: \nFirst Name: %s \nLast Name %s \nusername %s \nPassword %s'
+                      % (self.first_name, self.last_name, self.username, self.password))
+                # Store new nurse login info
+                self.nurse_login_info[self.username] = self.password
+                print(self.nurse_login_info)
     
 # Initialize the program by calling the Menu() and user_input() functions    
 initialize = Menu()
