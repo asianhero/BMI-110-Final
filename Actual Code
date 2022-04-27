@@ -129,7 +129,8 @@ class Doctor(Person):
                             print("Empty")
                         else:
                             print("Here's a list: ")
-                            w.database()
+                            w = Doctor()
+                            w.printPatients()
                     elif doctor_welcome == 3:
                         w.lab_tests_request()
                         
@@ -166,6 +167,11 @@ class Doctor(Person):
         self.addition = int(input("test cost: "))
         attributes_list.append(self.addition)
         self.dictionary_keys[key_id] = attributes_list
+        
+   #Used if doc presses 2 in doc menu to view all patients
+    def printPatients(self):
+        for key, value in self.dictionary_keys.items():
+            print('Patient ', key, ": ", value)
         
     # Create discharge patient function
     def discharge_patient(self):
